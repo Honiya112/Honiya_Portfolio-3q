@@ -75,8 +75,8 @@ export default function Home() {
             />
           </motion.div>
 
-          {/* Title at top center with generous padding */}
-          <div className="flex flex-col items-center pt-12 md:pt-20 px-4">
+          {/* Title at top center with generous padding - z-50 so it never hides behind polaroids */}
+          <div className="relative z-50 flex flex-col items-center pt-12 md:pt-20 px-4">
             <StitchedName />
 
             {/* Subtitle */}

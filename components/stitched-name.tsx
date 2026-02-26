@@ -86,7 +86,17 @@ function buildLetters(): LetterDef[] {
   return letters
 }
 
-/* Each letter is drawn with dashed strokes (stitch look) */
+/*
+ * Each letter drawn with DASHED strokes (stitching look).
+ *
+ * The trick: we measure the real path length, then set
+ *   stroke-dasharray = "8 8 8 8 ... <remaining> <totalLen>"
+ * Initially stroke-dashoffset = totalLen (nothing visible).
+ * We animate offset -> 0 so dashes progressively appear.
+ *
+ * Because we keep the 8-8 dash pattern baked in AND only move
+ * the offset, the final result is a dashed / stitched line.
+ */
 function AnimatedLetter({
   d,
   index,
@@ -98,21 +108,43 @@ function AnimatedLetter({
   total: number
   progress: ReturnType<typeof useMotionValue<number>>
 }) {
+  const pathRef = useRef<SVGPathElement>(null)
+  const [totalLen, setTotalLen] = useState(600) // sensible default
+
+  useEffect(() => {
+    if (pathRef.current) {
+      setTotalLen(pathRef.current.getTotalLength())
+    }
+  }, [])
+
   const sliceStart = index / total
   const sliceEnd = (index + 1) / total
-  const pathLength = useTransform(progress, [sliceStart, sliceEnd], [0, 1])
-  const opacity = useTransform(progress, [sliceStart, Math.min(sliceStart + 0.015, 1)], [0, 1])
+
+  // Map global 0-1 progress to this letter's local 0-1
+  const localProgress = useTransform(progress, [sliceStart, sliceEnd], [0, 1])
+  // strokeDashoffset goes from totalLen (hidden) to 0 (fully drawn)
+  const dashOffset = useTransform(localProgress, [0, 1], [totalLen, 0])
+  // Fade in right as drawing starts
+  const opacity = useTransform(progress, [sliceStart, Math.min(sliceStart + 0.01, 1)], [0, 1])
+
+  // Build a dasharray that is "8 8" repeated enough to cover the full length,
+  // so the visible portion always shows dashed stitches.
+  const dashArray = `8 8`
 
   return (
     <motion.path
+      ref={pathRef}
       d={d}
       fill="none"
       stroke="#4A0E4E"
-      strokeWidth="4.5"
+      strokeWidth="4"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeDasharray="8 6"
-      style={{ pathLength, opacity }}
+      strokeDasharray={dashArray}
+      style={{
+        strokeDashoffset: dashOffset,
+        opacity,
+      }}
     />
   )
 }
@@ -222,10 +254,10 @@ export function StitchedName() {
   let drawIndex = 0
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full z-50 relative">
       <svg
         viewBox={`-12 -12 ${totalWidth + 24} ${FONT_H + 32}`}
-        className="w-full max-w-[660px] md:max-w-[840px] h-auto"
+        className="w-full max-w-[420px] md:max-w-[540px] lg:max-w-[620px] h-auto"
         aria-label="Honiya Maqsood"
         role="img"
       >
