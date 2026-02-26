@@ -3,14 +3,6 @@
 import { motion, useMotionValue, useTransform, animate } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 
-/*
- * True SVG path-draw animation for "HONIYA MAQSOOD".
- * Each letter is a hand-traced SVG path. A single motionValue drives
- * progress 0 → 1 over 4 seconds. Each letter maps its own sequential
- * slice so letters draw left-to-right. A glowing "needle" dot tracks
- * the leading edge of the currently-drawing letter.
- */
-
 interface LetterDef {
   char: string
   d: string
@@ -94,6 +86,7 @@ function buildLetters(): LetterDef[] {
   return letters
 }
 
+/* Each letter is drawn with dashed strokes (stitch look) */
 function AnimatedLetter({
   d,
   index,
@@ -111,29 +104,16 @@ function AnimatedLetter({
   const opacity = useTransform(progress, [sliceStart, Math.min(sliceStart + 0.015, 1)], [0, 1])
 
   return (
-    <>
-      {/* Main solid stroke drawn progressively */}
-      <motion.path
-        d={d}
-        fill="none"
-        stroke="#4A0E4E"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ pathLength, opacity }}
-      />
-      {/* Stitch-texture dashed overlay */}
-      <motion.path
-        d={d}
-        fill="none"
-        stroke="rgba(74, 14, 78, 0.3)"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeDasharray="6 5"
-        style={{ pathLength, opacity }}
-      />
-    </>
+    <motion.path
+      d={d}
+      fill="none"
+      stroke="#4A0E4E"
+      strokeWidth="4.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeDasharray="8 6"
+      style={{ pathLength, opacity }}
+    />
   )
 }
 
@@ -145,31 +125,32 @@ function NeedleDot({
   letters: LetterDef[]
   progress: ReturnType<typeof useMotionValue<number>>
 }) {
-  const svgRef = useRef<SVGCircleElement>(null)
+  const dotRef = useRef<SVGCircleElement>(null)
+  const glowRef = useRef<SVGCircleElement>(null)
   const pathRefs = useRef<SVGPathElement[]>([])
   const drawable = letters.filter((l) => l.d !== "")
   const total = drawable.length
 
   useEffect(() => {
-    // Create hidden path elements for measurement
-    const svg = svgRef.current?.closest("svg")
+    const svg = dotRef.current?.closest("svg")
     if (!svg) return
     pathRefs.current = drawable.map((l) => {
       const p = document.createElementNS("http://www.w3.org/2000/svg", "path")
       p.setAttribute("d", l.d)
       p.style.visibility = "hidden"
+      p.style.position = "absolute"
       svg.appendChild(p)
       return p
     })
     return () => {
       pathRefs.current.forEach((p) => p.remove())
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     const unsubscribe = progress.on("change", (v: number) => {
-      if (!svgRef.current || pathRefs.current.length === 0) return
+      if (!dotRef.current || pathRefs.current.length === 0) return
       const letterIdx = Math.min(Math.floor(v * total), total - 1)
       const path = pathRefs.current[letterIdx]
       if (!path) return
@@ -178,29 +159,23 @@ function NeedleDot({
       const localT = Math.min(Math.max((v - sliceStart) / (sliceEnd - sliceStart), 0), 1)
       const len = path.getTotalLength()
       const pt = path.getPointAtLength(localT * len)
-      svgRef.current.setAttribute("cx", String(pt.x))
-      svgRef.current.setAttribute("cy", String(pt.y))
-      svgRef.current.setAttribute("opacity", v >= 0.995 ? "0" : "1")
+      const cx = String(pt.x)
+      const cy = String(pt.y)
+      const visible = v >= 0.995 ? "0" : "1"
+      dotRef.current.setAttribute("cx", cx)
+      dotRef.current.setAttribute("cy", cy)
+      dotRef.current.setAttribute("opacity", visible)
+      if (glowRef.current) {
+        glowRef.current.setAttribute("cx", cx)
+        glowRef.current.setAttribute("cy", cy)
+        glowRef.current.setAttribute("opacity", visible)
+      }
     })
     return unsubscribe
   }, [progress, total])
 
   return (
     <>
-      <circle
-        ref={svgRef}
-        r="6"
-        fill="#4A0E4E"
-        opacity="0"
-      >
-        <animate
-          attributeName="r"
-          values="5;7;5"
-          dur="0.8s"
-          repeatCount="indefinite"
-        />
-      </circle>
-      {/* Glow filter */}
       <defs>
         <filter id="needle-glow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="4" result="blur" />
@@ -211,24 +186,20 @@ function NeedleDot({
         </filter>
       </defs>
       <circle
-        ref={(el) => {
-          // mirror position from main dot
-          if (!el || !svgRef.current) return
-          const obs = new MutationObserver(() => {
-            if (!svgRef.current) return
-            el.setAttribute("cx", svgRef.current.getAttribute("cx") || "0")
-            el.setAttribute("cy", svgRef.current.getAttribute("cy") || "0")
-            el.setAttribute("opacity", svgRef.current.getAttribute("opacity") || "0")
-          })
-          if (svgRef.current) {
-            obs.observe(svgRef.current, { attributes: true })
-          }
-        }}
+        ref={glowRef}
         r="10"
-        fill="rgba(74, 14, 78, 0.25)"
+        fill="rgba(74, 14, 78, 0.2)"
         filter="url(#needle-glow)"
         opacity="0"
       />
+      <circle ref={dotRef} r="5" fill="#4A0E4E" opacity="0">
+        <animate
+          attributeName="r"
+          values="4;6;4"
+          dur="0.8s"
+          repeatCount="indefinite"
+        />
+      </circle>
     </>
   )
 }
@@ -254,7 +225,7 @@ export function StitchedName() {
     <div className="flex flex-col items-center w-full">
       <svg
         viewBox={`-12 -12 ${totalWidth + 24} ${FONT_H + 32}`}
-        className="w-full max-w-[740px] md:max-w-[920px] h-auto"
+        className="w-full max-w-[660px] md:max-w-[840px] h-auto"
         aria-label="Honiya Maqsood"
         role="img"
       >

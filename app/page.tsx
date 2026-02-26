@@ -32,105 +32,96 @@ export default function Home() {
       </div>
 
       <main className="relative z-10">
-        {/* Top bar with polaroids */}
-        <div className="relative w-full px-4 md:px-12 pt-6 md:pt-10">
-          <div className="flex justify-between items-start">
-            {/* Left polaroid: Currently making */}
-            <motion.div
-              className="flex flex-col items-start gap-1"
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
-              <span className="text-[11px] md:text-sm font-serif text-[#4A0E4E]/60 tracking-widest uppercase mb-1 font-medium">
-                {"What I'm currently making"}
-              </span>
-              <PolaroidFrame
-                imageSrc="/images/crochet-bag.jpg"
-                caption="purple crochet bag"
-                rotation={-3}
-                size="medium"
-                delay={0.5}
-                alt="A hand-crocheted purple bag being made"
-              />
-            </motion.div>
+        {/* ===== HERO SECTION ===== */}
+        <section className="relative min-h-screen flex flex-col">
+          {/* Polaroids as small corner accents - absolutely positioned */}
+          {/* Top-left: Currently making */}
+          <motion.div
+            className="absolute top-4 left-4 md:top-8 md:left-8 z-20"
+            initial={{ opacity: 0, x: -20, y: -20 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            <span className="block text-[9px] md:text-[10px] font-serif text-[#4A0E4E]/50 tracking-widest uppercase mb-1.5 font-medium">
+              {"What I'm making"}
+            </span>
+            <PolaroidFrame
+              imageSrc="/images/crochet-bag.jpg"
+              caption="purple crochet bag"
+              rotation={-4}
+              size="tiny"
+              delay={0.5}
+              alt="A hand-crocheted purple bag being made"
+            />
+          </motion.div>
 
-            {/* Right polaroid: Photo of the day */}
+          {/* Top-right: Photo of the day */}
+          <motion.div
+            className="absolute top-4 right-4 md:top-8 md:right-8 z-20 flex flex-col items-end"
+            initial={{ opacity: 0, x: 20, y: -20 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+          >
+            <span className="block text-[9px] md:text-[10px] font-serif text-[#4A0E4E]/50 tracking-widest uppercase mb-1.5 font-medium">
+              Photo of the day
+            </span>
+            <PolaroidFrame
+              imageSrc="/images/photo-of-day.jpg"
+              caption="golden hour"
+              rotation={5}
+              size="tiny"
+              delay={0.7}
+              alt="Golden hour photograph of lavender flowers"
+            />
+          </motion.div>
+
+          {/* Title at top center with generous padding */}
+          <div className="flex flex-col items-center pt-12 md:pt-20 px-4">
+            <StitchedName />
+
+            {/* Subtitle */}
             <motion.div
-              className="flex flex-col items-end gap-1"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
+              className="flex items-center gap-3 mt-5"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 4.2, duration: 0.8 }}
             >
-              <span className="text-[11px] md:text-sm font-serif text-[#4A0E4E]/60 tracking-widest uppercase mb-1 font-medium">
-                Picture of the day
-              </span>
-              <PolaroidFrame
-                imageSrc="/images/photo-of-day.jpg"
-                caption="golden hour"
-                rotation={4}
-                size="small"
-                delay={0.7}
-                alt="Golden hour photograph of lavender flowers"
-              />
+              <svg width="40" height="2" className="hidden md:block">
+                <line
+                  x1="0" y1="1" x2="40" y2="1"
+                  stroke="#4A0E4E"
+                  strokeWidth="1.5"
+                  strokeDasharray="4 3"
+                  strokeOpacity="0.35"
+                />
+              </svg>
+              <p className="font-sans text-sm md:text-base text-[#4A0E4E]/80 tracking-[0.2em] uppercase font-semibold">
+                Innovative Developer
+              </p>
+              <svg width="40" height="2" className="hidden md:block">
+                <line
+                  x1="0" y1="1" x2="40" y2="1"
+                  stroke="#4A0E4E"
+                  strokeWidth="1.5"
+                  strokeDasharray="4 3"
+                  strokeOpacity="0.35"
+                />
+              </svg>
             </motion.div>
           </div>
-        </div>
 
-        {/* Hero: Stitched Name */}
-        <section className="flex flex-col items-center px-4 pt-8 md:pt-16 pb-6">
-          <StitchedName />
-
-          {/* Subtitle with stitch accent */}
+          {/* 3D Device Carousel - main hero focus, immediately below title */}
           <motion.div
-            className="flex items-center gap-3 mt-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 4.2, duration: 0.8 }}
+            className="flex-1 flex flex-col items-center justify-center px-4 pt-6 md:pt-10 pb-12"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0, duration: 0.8 }}
           >
-            <svg width="40" height="2" className="hidden md:block">
-              <line
-                x1="0" y1="1" x2="40" y2="1"
-                stroke="#4A0E4E"
-                strokeWidth="1.5"
-                strokeDasharray="4 3"
-                strokeOpacity="0.35"
-              />
-            </svg>
-            <p className="font-sans text-sm md:text-base text-[#4A0E4E]/80 tracking-[0.2em] uppercase font-semibold">
-              Innovative Developer
-            </p>
-            <svg width="40" height="2" className="hidden md:block">
-              <line
-                x1="0" y1="1" x2="40" y2="1"
-                stroke="#4A0E4E"
-                strokeWidth="1.5"
-                strokeDasharray="4 3"
-                strokeOpacity="0.35"
-              />
-            </svg>
+            <DeviceCarousel />
           </motion.div>
         </section>
 
-        {/* 3D Device Carousel - "Selected Works" */}
-        <motion.section
-          className="flex flex-col items-center justify-center px-4 py-8 md:py-16"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.8 }}
-        >
-          <motion.h2
-            className="text-center font-serif text-lg md:text-xl text-[#4A0E4E]/70 tracking-[0.15em] uppercase mb-10 font-medium"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5, duration: 0.8 }}
-          >
-            Selected Works
-          </motion.h2>
-          <DeviceCarousel />
-        </motion.section>
-
-        {/* ALL STITCHES - Scroll-triggered project grid */}
+        {/* ===== ALL STITCHES SECTION ===== */}
         <section className="px-4 md:px-12 lg:px-20 py-12 md:py-20">
           {/* Section header with stitch lines */}
           <motion.div
