@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useMotionValue, useTransform, animate } from "framer-motion"
+import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 
 interface LetterDef {
@@ -87,49 +87,31 @@ function buildLetters(): LetterDef[] {
 }
 
 /*
- * Each letter drawn with DASHED strokes (stitching look).
+ * Each letter drawn one after the other with dashed strokes.
  *
- * The trick: we measure the real path length, then set
- *   stroke-dasharray = "8 8 8 8 ... <remaining> <totalLen>"
- * Initially stroke-dashoffset = totalLen (nothing visible).
- * We animate offset -> 0 so dashes progressively appear.
+ * We measure the real SVG path length, set strokeDasharray = "8 8",
+ * then animate strokeDashoffset from totalLen -> 0 with a staggered
+ * delay so each letter completes before the next one starts.
  *
- * Because we keep the 8-8 dash pattern baked in AND only move
- * the offset, the final result is a dashed / stitched line.
+ * No glowing dot, just the dashes drawing in.
  */
 function AnimatedLetter({
   d,
-  index,
-  total,
-  progress,
+  delay,
+  duration,
 }: {
   d: string
-  index: number
-  total: number
-  progress: ReturnType<typeof useMotionValue<number>>
+  delay: number
+  duration: number
 }) {
   const pathRef = useRef<SVGPathElement>(null)
-  const [totalLen, setTotalLen] = useState(600) // sensible default
+  const [totalLen, setTotalLen] = useState(600)
 
   useEffect(() => {
     if (pathRef.current) {
       setTotalLen(pathRef.current.getTotalLength())
     }
   }, [])
-
-  const sliceStart = index / total
-  const sliceEnd = (index + 1) / total
-
-  // Map global 0-1 progress to this letter's local 0-1
-  const localProgress = useTransform(progress, [sliceStart, sliceEnd], [0, 1])
-  // strokeDashoffset goes from totalLen (hidden) to 0 (fully drawn)
-  const dashOffset = useTransform(localProgress, [0, 1], [totalLen, 0])
-  // Fade in right as drawing starts
-  const opacity = useTransform(progress, [sliceStart, Math.min(sliceStart + 0.01, 1)], [0, 1])
-
-  // Build a dasharray that is "8 8" repeated enough to cover the full length,
-  // so the visible portion always shows dashed stitches.
-  const dashArray = `8 8`
 
   return (
     <motion.path
@@ -140,116 +122,35 @@ function AnimatedLetter({
       strokeWidth="4"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeDasharray={dashArray}
-      style={{
-        strokeDashoffset: dashOffset,
-        opacity,
+      strokeDasharray="8 8"
+      initial={{ strokeDashoffset: totalLen, opacity: 0 }}
+      animate={{ strokeDashoffset: 0, opacity: 1 }}
+      transition={{
+        strokeDashoffset: {
+          duration,
+          delay,
+          ease: "easeInOut",
+        },
+        opacity: {
+          duration: 0.1,
+          delay,
+        },
       }}
     />
   )
 }
 
-/* Glowing needle dot that follows the currently-drawing letter */
-function NeedleDot({
-  letters,
-  progress,
-}: {
-  letters: LetterDef[]
-  progress: ReturnType<typeof useMotionValue<number>>
-}) {
-  const dotRef = useRef<SVGCircleElement>(null)
-  const glowRef = useRef<SVGCircleElement>(null)
-  const pathRefs = useRef<SVGPathElement[]>([])
-  const drawable = letters.filter((l) => l.d !== "")
-  const total = drawable.length
-
-  useEffect(() => {
-    const svg = dotRef.current?.closest("svg")
-    if (!svg) return
-    pathRefs.current = drawable.map((l) => {
-      const p = document.createElementNS("http://www.w3.org/2000/svg", "path")
-      p.setAttribute("d", l.d)
-      p.style.visibility = "hidden"
-      p.style.position = "absolute"
-      svg.appendChild(p)
-      return p
-    })
-    return () => {
-      pathRefs.current.forEach((p) => p.remove())
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    const unsubscribe = progress.on("change", (v: number) => {
-      if (!dotRef.current || pathRefs.current.length === 0) return
-      const letterIdx = Math.min(Math.floor(v * total), total - 1)
-      const path = pathRefs.current[letterIdx]
-      if (!path) return
-      const sliceStart = letterIdx / total
-      const sliceEnd = (letterIdx + 1) / total
-      const localT = Math.min(Math.max((v - sliceStart) / (sliceEnd - sliceStart), 0), 1)
-      const len = path.getTotalLength()
-      const pt = path.getPointAtLength(localT * len)
-      const cx = String(pt.x)
-      const cy = String(pt.y)
-      const visible = v >= 0.995 ? "0" : "1"
-      dotRef.current.setAttribute("cx", cx)
-      dotRef.current.setAttribute("cy", cy)
-      dotRef.current.setAttribute("opacity", visible)
-      if (glowRef.current) {
-        glowRef.current.setAttribute("cx", cx)
-        glowRef.current.setAttribute("cy", cy)
-        glowRef.current.setAttribute("opacity", visible)
-      }
-    })
-    return unsubscribe
-  }, [progress, total])
-
-  return (
-    <>
-      <defs>
-        <filter id="needle-glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-      <circle
-        ref={glowRef}
-        r="10"
-        fill="rgba(74, 14, 78, 0.2)"
-        filter="url(#needle-glow)"
-        opacity="0"
-      />
-      <circle ref={dotRef} r="5" fill="#4A0E4E" opacity="0">
-        <animate
-          attributeName="r"
-          values="4;6;4"
-          dur="0.8s"
-          repeatCount="indefinite"
-        />
-      </circle>
-    </>
-  )
-}
-
 export function StitchedName() {
   const [letters] = useState(() => buildLetters())
-  const progress = useMotionValue(0)
-  const hasAnimated = useRef(false)
 
   const drawableLetters = letters.filter((l) => l.d !== "")
   const totalWidth =
     letters.reduce((acc, l) => acc + l.width + (l.char !== " " ? GAP : 0), 0) - GAP
 
-  useEffect(() => {
-    if (hasAnimated.current) return
-    hasAnimated.current = true
-    animate(progress, 1, { duration: 4, ease: "easeInOut" })
-  }, [progress])
+  // Total animation = ~4s. Stagger each letter so it finishes before next starts.
+  const totalDrawable = drawableLetters.length
+  const perLetterDuration = 3.5 / totalDrawable // each letter's draw time
+  const staggerDelay = perLetterDuration * 0.85 // slight overlap for smoothness
 
   let drawIndex = 0
 
@@ -269,13 +170,11 @@ export function StitchedName() {
             <AnimatedLetter
               key={i}
               d={letter.d}
-              index={idx}
-              total={drawableLetters.length}
-              progress={progress}
+              delay={0.3 + idx * staggerDelay}
+              duration={perLetterDuration}
             />
           )
         })}
-        <NeedleDot letters={letters} progress={progress} />
       </svg>
     </div>
   )
