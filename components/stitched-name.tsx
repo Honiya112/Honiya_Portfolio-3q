@@ -1,128 +1,194 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, useMotionValue, useTransform, animate } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 
-const LETTERS = "HONIYA MAQSOOD".split("")
+/*
+ * Each letter of "HONIYA MAQSOOD" is defined as an SVG <path>.
+ * Framer Motion's `pathLength` drives a single 0 → 1 animation that
+ * reveals the stroke progressively, producing the "needle-stitching"
+ * draw effect. A dashed `strokeDasharray` overlays the stroke so the
+ * solid draw still looks like thread stitches.
+ *
+ * A global progress motion-value (0 → 1 over 3 s) is used; each letter
+ * maps its own slice of that progress so letters appear left-to-right.
+ */
 
-function getLetterPath(letter: string, x: number, y: number, size: number): string {
-  const s = size
-  const h = s * 0.8
+interface LetterDef {
+  char: string
+  d: string // SVG path data
+  width: number // advance width
+}
 
-  const paths: Record<string, string> = {
-    H: `M${x} ${y + h} L${x} ${y} M${x} ${y + h * 0.5} L${x + s * 0.5} ${y + h * 0.5} M${x + s * 0.5} ${y} L${x + s * 0.5} ${y + h}`,
-    O: `M${x + s * 0.25} ${y} L${x + s * 0.45} ${y} L${x + s * 0.5} ${y + h * 0.1} L${x + s * 0.5} ${y + h * 0.9} L${x + s * 0.45} ${y + h} L${x + s * 0.05} ${y + h} L${x} ${y + h * 0.9} L${x} ${y + h * 0.1} Z`,
-    N: `M${x} ${y + h} L${x} ${y} L${x + s * 0.5} ${y + h} L${x + s * 0.5} ${y}`,
-    I: `M${x + s * 0.1} ${y} L${x + s * 0.35} ${y} M${x + s * 0.225} ${y} L${x + s * 0.225} ${y + h} M${x + s * 0.1} ${y + h} L${x + s * 0.35} ${y + h}`,
-    Y: `M${x} ${y} L${x + s * 0.25} ${y + h * 0.5} L${x + s * 0.5} ${y} M${x + s * 0.25} ${y + h * 0.5} L${x + s * 0.25} ${y + h}`,
-    A: `M${x} ${y + h} L${x + s * 0.25} ${y} L${x + s * 0.5} ${y + h} M${x + s * 0.1} ${y + h * 0.6} L${x + s * 0.4} ${y + h * 0.6}`,
-    M: `M${x} ${y + h} L${x} ${y} L${x + s * 0.3} ${y + h * 0.5} L${x + s * 0.6} ${y} L${x + s * 0.6} ${y + h}`,
-    Q: `M${x + s * 0.25} ${y} L${x + s * 0.45} ${y} L${x + s * 0.5} ${y + h * 0.1} L${x + s * 0.5} ${y + h * 0.9} L${x + s * 0.45} ${y + h} L${x + s * 0.05} ${y + h} L${x} ${y + h * 0.9} L${x} ${y + h * 0.1} Z M${x + s * 0.35} ${y + h * 0.7} L${x + s * 0.55} ${y + h * 1.05}`,
-    S: `M${x + s * 0.45} ${y + h * 0.1} L${x + s * 0.35} ${y} L${x + s * 0.1} ${y} L${x} ${y + h * 0.1} L${x} ${y + h * 0.35} L${x + s * 0.45} ${y + h * 0.6} L${x + s * 0.5} ${y + h * 0.8} L${x + s * 0.4} ${y + h} L${x + s * 0.1} ${y + h} L${x} ${y + h * 0.9}`,
-    D: `M${x} ${y} L${x} ${y + h} L${x + s * 0.35} ${y + h} L${x + s * 0.5} ${y + h * 0.85} L${x + s * 0.5} ${y + h * 0.15} L${x + s * 0.35} ${y} Z`,
-    " ": "",
+const FONT_H = 72 // cap-height in SVG units
+const GAP = 8 // inter-letter gap
+const WORD_GAP = 28 // space between words
+
+function buildLetters(): LetterDef[] {
+  // Bolder, more complete letter paths at 72-unit height for high legibility
+  const defs: Record<string, { d: (x: number) => string; w: number }> = {
+    H: {
+      d: (x) =>
+        `M${x} ${FONT_H} L${x} 0 M${x} ${FONT_H * 0.5} L${x + 42} ${FONT_H * 0.5} M${x + 42} 0 L${x + 42} ${FONT_H}`,
+      w: 42,
+    },
+    O: {
+      d: (x) =>
+        `M${x + 22} 0 Q${x} 0 ${x} ${FONT_H * 0.5} Q${x} ${FONT_H} ${x + 22} ${FONT_H} Q${x + 44} ${FONT_H} ${x + 44} ${FONT_H * 0.5} Q${x + 44} 0 ${x + 22} 0`,
+      w: 44,
+    },
+    N: {
+      d: (x) =>
+        `M${x} ${FONT_H} L${x} 0 L${x + 42} ${FONT_H} L${x + 42} 0`,
+      w: 42,
+    },
+    I: {
+      d: (x) =>
+        `M${x} 0 L${x + 24} 0 M${x + 12} 0 L${x + 12} ${FONT_H} M${x} ${FONT_H} L${x + 24} ${FONT_H}`,
+      w: 24,
+    },
+    Y: {
+      d: (x) =>
+        `M${x} 0 L${x + 20} ${FONT_H * 0.45} L${x + 40} 0 M${x + 20} ${FONT_H * 0.45} L${x + 20} ${FONT_H}`,
+      w: 40,
+    },
+    A: {
+      d: (x) =>
+        `M${x} ${FONT_H} L${x + 22} 0 L${x + 44} ${FONT_H} M${x + 10} ${FONT_H * 0.6} L${x + 34} ${FONT_H * 0.6}`,
+      w: 44,
+    },
+    M: {
+      d: (x) =>
+        `M${x} ${FONT_H} L${x} 0 L${x + 26} ${FONT_H * 0.55} L${x + 52} 0 L${x + 52} ${FONT_H}`,
+      w: 52,
+    },
+    Q: {
+      d: (x) =>
+        `M${x + 22} 0 Q${x} 0 ${x} ${FONT_H * 0.5} Q${x} ${FONT_H} ${x + 22} ${FONT_H} Q${x + 44} ${FONT_H} ${x + 44} ${FONT_H * 0.5} Q${x + 44} 0 ${x + 22} 0 M${x + 30} ${FONT_H * 0.7} L${x + 48} ${FONT_H + 8}`,
+      w: 48,
+    },
+    S: {
+      d: (x) =>
+        `M${x + 38} ${FONT_H * 0.12} Q${x + 38} 0 ${x + 20} 0 Q${x} 0 ${x} ${FONT_H * 0.22} Q${x} ${FONT_H * 0.42} ${x + 20} ${FONT_H * 0.48} Q${x + 40} ${FONT_H * 0.54} ${x + 40} ${FONT_H * 0.76} Q${x + 40} ${FONT_H} ${x + 20} ${FONT_H} Q${x} ${FONT_H} ${x} ${FONT_H * 0.88}`,
+      w: 40,
+    },
+    D: {
+      d: (x) =>
+        `M${x} 0 L${x} ${FONT_H} L${x + 24} ${FONT_H} Q${x + 46} ${FONT_H} ${x + 46} ${FONT_H * 0.5} Q${x + 46} 0 ${x + 24} 0 Z`,
+      w: 46,
+    },
   }
 
-  return paths[letter] || ""
+  const text = "HONIYA MAQSOOD"
+  const letters: LetterDef[] = []
+  let cx = 0
+
+  for (const ch of text) {
+    if (ch === " ") {
+      letters.push({ char: " ", d: "", width: WORD_GAP })
+      cx += WORD_GAP
+    } else {
+      const def = defs[ch]
+      if (def) {
+        letters.push({ char: ch, d: def.d(cx), width: def.w })
+        cx += def.w + GAP
+      }
+    }
+  }
+
+  return letters
+}
+
+function AnimatedLetter({
+  d,
+  index,
+  total,
+  progress,
+}: {
+  d: string
+  index: number
+  total: number
+  progress: ReturnType<typeof useMotionValue<number>>
+}) {
+  // Each letter occupies a slice of the 0→1 timeline
+  const sliceStart = index / total
+  const sliceEnd = (index + 1) / total
+  const pathLength = useTransform(progress, [sliceStart, sliceEnd], [0, 1])
+  const opacity = useTransform(progress, [sliceStart, Math.min(sliceStart + 0.02, 1)], [0, 1])
+
+  return (
+    <>
+      {/* Solid fill stroke drawn progressively */}
+      <motion.path
+        d={d}
+        fill="none"
+        stroke="white"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{
+          pathLength,
+          opacity,
+          filter: "drop-shadow(0 0 6px rgba(255,255,255,0.35))",
+        }}
+      />
+      {/* Dashed overlay for the "stitch" texture */}
+      <motion.path
+        d={d}
+        fill="none"
+        stroke="rgba(255,255,255,0.45)"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray="6 5"
+        style={{
+          pathLength,
+          opacity,
+        }}
+      />
+    </>
+  )
 }
 
 export function StitchedName() {
-  const svgRef = useRef<SVGSVGElement>(null)
-  const [pathLengths, setPathLengths] = useState<number[]>([])
-  const [isMounted, setIsMounted] = useState(false)
+  const [letters] = useState(() => buildLetters())
+  const progress = useMotionValue(0)
+  const hasAnimated = useRef(false)
 
-  const letterSpacing = 52
-  const letterSize = 48
-  const startY = 20
-  const totalWidth = LETTERS.reduce((acc, letter) => {
-    if (letter === " ") return acc + 30
-    if (letter === "M") return acc + letterSize * 0.6 + 16
-    return acc + letterSize * 0.5 + 16
-  }, 0)
+  const drawableLetters = letters.filter((l) => l.d !== "")
+  const totalDrawable = drawableLetters.length
 
-  const paths: string[] = []
-  let currentX = 0
-  LETTERS.forEach((letter) => {
-    if (letter === " ") {
-      paths.push("")
-      currentX += 30
-    } else {
-      const w = letter === "M" ? letterSize * 0.6 : letterSize * 0.5
-      paths.push(getLetterPath(letter, currentX, startY, letterSize))
-      currentX += w + 16
-    }
-  })
+  // total SVG width from letter data
+  const totalWidth = letters.reduce((acc, l) => acc + l.width + (l.char !== " " ? GAP : 0), 0) - GAP
 
   useEffect(() => {
-    setIsMounted(true)
-    if (svgRef.current) {
-      const pathElements = svgRef.current.querySelectorAll("path.letter-path")
-      const lengths = Array.from(pathElements).map((p) => (p as SVGPathElement).getTotalLength())
-      setPathLengths(lengths)
-    }
-  }, [])
+    if (hasAnimated.current) return
+    hasAnimated.current = true
+    animate(progress, 1, { duration: 3, ease: "easeInOut" })
+  }, [progress])
+
+  // Assign sequential indices only to drawable letters
+  let drawIndex = 0
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center w-full">
       <svg
-        ref={svgRef}
-        viewBox={`-10 0 ${totalWidth + 20} ${letterSize + 40}`}
-        className="w-full max-w-[700px] md:max-w-[850px] h-auto"
+        viewBox={`-8 -8 ${totalWidth + 16} ${FONT_H + 24}`}
+        className="w-full max-w-[740px] md:max-w-[900px] h-auto"
         aria-label="Honiya Maqsood"
         role="img"
       >
         <title>{"Honiya Maqsood"}</title>
-        {paths.map((d, i) => {
-          if (!d) return null
-          const length = pathLengths[i] || 500
+        {letters.map((letter, i) => {
+          if (letter.d === "") return null
+          const idx = drawIndex++
           return (
-            <motion.path
+            <AnimatedLetter
               key={i}
-              className="letter-path"
-              d={d}
-              fill="none"
-              stroke="white"
-              strokeWidth="2.5"
-              strokeDasharray="8 6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              initial={isMounted ? { strokeDashoffset: length, opacity: 0 } : false}
-              animate={
-                isMounted && pathLengths.length > 0
-                  ? { strokeDashoffset: 0, opacity: 1 }
-                  : undefined
-              }
-              transition={{
-                strokeDashoffset: {
-                  duration: 1.8,
-                  delay: i * 0.12,
-                  ease: "easeInOut",
-                },
-                opacity: {
-                  duration: 0.3,
-                  delay: i * 0.12,
-                },
-              }}
-              style={{
-                filter: "drop-shadow(0 0 3px rgba(255,255,255,0.4))",
-              }}
-            />
-          )
-        })}
-        {/* Needle decorative dots along the stitching */}
-        {paths.map((d, i) => {
-          if (!d) return null
-          return (
-            <motion.circle
-              key={`dot-${i}`}
-              cx={i * letterSpacing + 10}
-              cy={startY - 5}
-              r="1.5"
-              fill="white"
-              fillOpacity="0.6"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: i * 0.12 + 1.5, duration: 0.3 }}
+              d={letter.d}
+              index={idx}
+              total={totalDrawable}
+              progress={progress}
             />
           )
         })}

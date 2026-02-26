@@ -17,10 +17,10 @@ export default function Home() {
             width="100%"
             height="100%"
             fill="none"
-            stroke="white"
+            stroke="#4A0E4E"
             strokeWidth="1.5"
             strokeDasharray="10 8"
-            strokeOpacity="0.2"
+            strokeOpacity="0.15"
             rx="16"
           />
         </svg>
@@ -37,7 +37,7 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <span className="text-[10px] md:text-xs font-sans text-foreground/50 tracking-widest uppercase mb-1">
+              <span className="text-[10px] md:text-xs font-sans text-[#4A0E4E]/50 tracking-widest uppercase mb-1">
                 {"What I'm currently making"}
               </span>
               <PolaroidFrame
@@ -57,7 +57,7 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
             >
-              <span className="text-[10px] md:text-xs font-sans text-foreground/50 tracking-widest uppercase mb-1">
+              <span className="text-[10px] md:text-xs font-sans text-[#4A0E4E]/50 tracking-widest uppercase mb-1">
                 Picture of the day
               </span>
               <PolaroidFrame
@@ -81,27 +81,27 @@ export default function Home() {
             className="flex items-center gap-3 mt-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 2, duration: 0.8 }}
+            transition={{ delay: 3.2, duration: 0.8 }}
           >
             <svg width="40" height="2" className="hidden md:block">
               <line
                 x1="0" y1="1" x2="40" y2="1"
-                stroke="white"
+                stroke="#4A0E4E"
                 strokeWidth="1.5"
                 strokeDasharray="4 3"
-                strokeOpacity="0.4"
+                strokeOpacity="0.35"
               />
             </svg>
-            <p className="font-sans text-sm md:text-base text-foreground/50 tracking-[0.2em] uppercase">
-              Designer & Developer
+            <p className="font-sans text-sm md:text-base text-[#4A0E4E]/70 tracking-[0.2em] uppercase font-medium">
+              Innovative Developer
             </p>
             <svg width="40" height="2" className="hidden md:block">
               <line
                 x1="0" y1="1" x2="40" y2="1"
-                stroke="white"
+                stroke="#4A0E4E"
                 strokeWidth="1.5"
                 strokeDasharray="4 3"
-                strokeOpacity="0.4"
+                strokeOpacity="0.35"
               />
             </svg>
           </motion.div>
@@ -115,7 +115,7 @@ export default function Home() {
           transition={{ delay: 1.2, duration: 0.8 }}
         >
           <motion.h2
-            className="text-center font-serif text-lg md:text-xl text-foreground/60 tracking-[0.15em] uppercase mb-10"
+            className="text-center font-serif text-lg md:text-xl text-[#4A0E4E]/60 tracking-[0.15em] uppercase mb-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.5, duration: 0.8 }}
@@ -130,13 +130,13 @@ export default function Home() {
           <svg width="120" height="2">
             <line
               x1="0" y1="1" x2="120" y2="1"
-              stroke="white"
+              stroke="#4A0E4E"
               strokeWidth="1.5"
               strokeDasharray="6 5"
-              strokeOpacity="0.3"
+              strokeOpacity="0.25"
             />
           </svg>
-          <p className="font-sans text-xs text-foreground/30 tracking-widest uppercase">
+          <p className="font-sans text-xs text-[#4A0E4E]/30 tracking-widest uppercase">
             Crafted with care
           </p>
         </footer>
@@ -171,7 +171,7 @@ function CornerStitch({ position }: { position: "top-left" | "top-right" | "bott
       className={`fixed ${positionClasses[position]} z-0 pointer-events-none`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 2.5, duration: 0.5 }}
+      transition={{ delay: 3.5, duration: 0.5 }}
     >
       <svg
         width="24"
@@ -182,10 +182,10 @@ function CornerStitch({ position }: { position: "top-left" | "top-right" | "bott
         <path
           d="M2 22 L2 2 L22 2"
           fill="none"
-          stroke="white"
+          stroke="#4A0E4E"
           strokeWidth="1.5"
           strokeDasharray="4 3"
-          strokeOpacity="0.25"
+          strokeOpacity="0.2"
           strokeLinecap="round"
         />
       </svg>

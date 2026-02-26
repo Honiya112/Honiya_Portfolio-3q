@@ -59,7 +59,7 @@ export function PolaroidFrame({
 
       {/* Caption written in "handwriting" style */}
       <p
-        className="absolute bottom-2.5 left-0 right-0 text-center text-[11px] md:text-xs text-[#5C3D5C]/80 tracking-wide font-serif italic"
+        className="absolute bottom-2.5 left-0 right-0 text-center text-[11px] md:text-xs text-[#4A0E4E]/70 tracking-wide font-serif italic"
       >
         {caption}
       </p>

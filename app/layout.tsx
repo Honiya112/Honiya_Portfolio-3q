@@ -6,11 +6,11 @@ import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const _geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
-const _playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", weight: ["400", "500", "600", "700"] });
+const _playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", weight: ["400", "500", "600", "700", "800", "900"] });
 
 export const metadata: Metadata = {
   title: "Honiya's Portfolio",
-  description: "Portfolio of Honiya Maqsood - Designer & Developer crafting beautiful digital experiences.",
+  description: "Portfolio of Honiya Maqsood - Innovative Developer crafting beautiful digital experiences.",
   generator: 'v0.app',
   icons: {
     icon: [
