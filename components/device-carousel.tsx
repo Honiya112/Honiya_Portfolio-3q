@@ -34,7 +34,7 @@ const projects: Project[] = [
 
 function MacBookMockup({ screenshot, name }: { screenshot: string; name: string }) {
   return (
-    <div className="relative w-[320px] md:w-[420px]">
+    <div className="relative w-[300px] md:w-[400px]">
       <div className="relative rounded-t-xl bg-[#1a1a1a] p-2 pb-0">
         <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#2a2a2a]" />
         <div className="relative w-full aspect-[16/10] rounded-t-md overflow-hidden bg-[#111]">
@@ -47,35 +47,41 @@ function MacBookMockup({ screenshot, name }: { screenshot: string; name: string 
       <div className="relative mx-auto w-[110%] -ml-[5%] h-2 bg-[#d4d4d4] rounded-b-lg">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-[#aaa] rounded-b" />
       </div>
-      <p className="text-center mt-4 font-serif text-[#4A0E4E]/80 text-sm tracking-wide">{name}</p>
+      <p className="text-center mt-4 font-serif text-[#4A0E4E] text-sm md:text-base tracking-wide font-semibold">
+        {name}
+      </p>
     </div>
   )
 }
 
 function IPhoneMockup({ screenshot, name }: { screenshot: string; name: string }) {
   return (
-    <div className="relative w-[150px] md:w-[190px]">
+    <div className="relative w-[140px] md:w-[180px]">
       <div className="relative rounded-[28px] bg-[#1a1a1a] p-2 border-[3px] border-[#333]">
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-4 bg-[#1a1a1a] rounded-b-xl z-10" />
         <div className="relative w-full aspect-[9/19.5] rounded-[22px] overflow-hidden bg-[#111]">
           <Image src={screenshot} alt={`${name} project screenshot`} fill className="object-cover" />
         </div>
       </div>
-      <p className="text-center mt-4 font-serif text-[#4A0E4E]/80 text-sm tracking-wide">{name}</p>
+      <p className="text-center mt-4 font-serif text-[#4A0E4E] text-sm md:text-base tracking-wide font-semibold">
+        {name}
+      </p>
     </div>
   )
 }
 
 function SamsungMockup({ screenshot, name }: { screenshot: string; name: string }) {
   return (
-    <div className="relative w-[150px] md:w-[190px]">
+    <div className="relative w-[140px] md:w-[180px]">
       <div className="relative rounded-[20px] bg-[#1a1a1a] p-1.5 border-[2px] border-[#444]">
         <div className="absolute top-3 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#222] rounded-full z-10" />
         <div className="relative w-full aspect-[9/19.5] rounded-[16px] overflow-hidden bg-[#111]">
           <Image src={screenshot} alt={`${name} project screenshot`} fill className="object-cover" />
         </div>
       </div>
-      <p className="text-center mt-4 font-serif text-[#4A0E4E]/80 text-sm tracking-wide">{name}</p>
+      <p className="text-center mt-4 font-serif text-[#4A0E4E] text-sm md:text-base tracking-wide font-semibold">
+        {name}
+      </p>
     </div>
   )
 }
@@ -98,10 +104,8 @@ export function DeviceCarousel() {
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 50
     if (info.offset.x < -threshold) {
-      // swiped left → next
       setActiveIndex((prev) => (prev + 1) % projects.length)
     } else if (info.offset.x > threshold) {
-      // swiped right → previous
       setActiveIndex((prev) => (prev - 1 + projects.length) % projects.length)
     }
   }
@@ -123,69 +127,71 @@ export function DeviceCarousel() {
       zIndex: 30,
     },
     left: {
-      x: "-115%",
+      x: "-120%",
       z: -250,
-      scale: 0.72,
+      scale: 0.7,
       rotateY: 40,
-      opacity: 0.55,
+      opacity: 0.5,
       zIndex: 10,
     },
     right: {
-      x: "15%",
+      x: "20%",
       z: -250,
-      scale: 0.72,
+      scale: 0.7,
       rotateY: -40,
-      opacity: 0.55,
+      opacity: 0.5,
       zIndex: 10,
     },
   }
 
   return (
     <div className="flex flex-col items-center gap-8 w-full">
-      {/* Drag wrapper - centered */}
-      <motion.div
-        ref={constraintsRef}
-        className="relative w-full max-w-[900px] h-[380px] md:h-[440px] mx-auto cursor-grab active:cursor-grabbing"
-        style={{ perspective: "1200px" }}
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.2}
-        onDragEnd={handleDragEnd}
-      >
-        <AnimatePresence mode="sync">
-          {projects.map((project, index) => {
-            const position = getPosition(index)
-            return (
-              <motion.div
-                key={project.name}
-                className="absolute left-1/2 top-1/2 pointer-events-auto"
-                style={{
-                  transformStyle: "preserve-3d",
-                  y: "-50%",
-                }}
-                animate={positionVariants[position]}
-                transition={{
-                  duration: 0.7,
-                  ease: [0.32, 0.72, 0, 1],
-                }}
-                onClick={() => setActiveIndex(index)}
-                whileHover={position !== "center" ? { scale: 0.78, opacity: 0.75 } : {}}
-                role="button"
-                aria-label={`View ${project.name} project`}
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault()
-                    setActiveIndex(index)
-                  }
-                }}
-              >
-                <DeviceMockup project={project} />
-              </motion.div>
-            )
-          })}
-        </AnimatePresence>
-      </motion.div>
+      {/* Carousel container - centered with flex */}
+      <div className="flex items-center justify-center w-full">
+        <motion.div
+          ref={constraintsRef}
+          className="relative w-full max-w-[900px] h-[380px] md:h-[440px] cursor-grab active:cursor-grabbing"
+          style={{ perspective: "1200px" }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.15}
+          onDragEnd={handleDragEnd}
+        >
+          <AnimatePresence mode="sync">
+            {projects.map((project, index) => {
+              const position = getPosition(index)
+              return (
+                <motion.div
+                  key={project.name}
+                  className="absolute left-1/2 top-1/2 pointer-events-auto"
+                  style={{
+                    transformStyle: "preserve-3d",
+                    y: "-50%",
+                  }}
+                  animate={positionVariants[position]}
+                  transition={{
+                    duration: 0.7,
+                    ease: [0.32, 0.72, 0, 1],
+                  }}
+                  onClick={() => setActiveIndex(index)}
+                  whileHover={position !== "center" ? { scale: 0.76, opacity: 0.65 } : {}}
+                  role="button"
+                  aria-label={`View ${project.name} project`}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      setActiveIndex(index)
+                    }
+                  }}
+                >
+                  <DeviceMockup project={project} />
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+        </motion.div>
+      </div>
 
       {/* Description */}
       <motion.div
@@ -195,7 +201,7 @@ export function DeviceCarousel() {
         transition={{ duration: 0.4 }}
         className="text-center"
       >
-        <p className="text-[#4A0E4E]/60 font-sans text-sm tracking-wide">
+        <p className="text-[#4A0E4E]/55 font-sans text-sm tracking-wide">
           {projects[activeIndex].description}
         </p>
       </motion.div>

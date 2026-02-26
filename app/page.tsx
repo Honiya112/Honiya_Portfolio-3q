@@ -4,12 +4,17 @@ import { motion } from "framer-motion"
 import { StitchedName } from "@/components/stitched-name"
 import { DeviceCarousel } from "@/components/device-carousel"
 import { PolaroidFrame } from "@/components/polaroid-frame"
+import { BackgroundThreads } from "@/components/background-threads"
+import { ProjectGrid } from "@/components/project-grid"
 
 export default function Home() {
   return (
     <div className="relative min-h-screen bg-background fabric-texture overflow-hidden">
+      {/* Animated background threads */}
+      <BackgroundThreads />
+
       {/* Subtle stitch border around the page */}
-      <div className="fixed inset-4 md:inset-8 pointer-events-none z-0">
+      <div className="fixed inset-4 md:inset-8 pointer-events-none z-[2]">
         <svg className="w-full h-full" preserveAspectRatio="none">
           <rect
             x="0"
@@ -37,7 +42,7 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <span className="text-[10px] md:text-xs font-sans text-[#4A0E4E]/50 tracking-widest uppercase mb-1">
+              <span className="text-[11px] md:text-sm font-serif text-[#4A0E4E]/60 tracking-widest uppercase mb-1 font-medium">
                 {"What I'm currently making"}
               </span>
               <PolaroidFrame
@@ -57,7 +62,7 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
             >
-              <span className="text-[10px] md:text-xs font-sans text-[#4A0E4E]/50 tracking-widest uppercase mb-1">
+              <span className="text-[11px] md:text-sm font-serif text-[#4A0E4E]/60 tracking-widest uppercase mb-1 font-medium">
                 Picture of the day
               </span>
               <PolaroidFrame
@@ -81,7 +86,7 @@ export default function Home() {
             className="flex items-center gap-3 mt-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 3.2, duration: 0.8 }}
+            transition={{ delay: 4.2, duration: 0.8 }}
           >
             <svg width="40" height="2" className="hidden md:block">
               <line
@@ -92,7 +97,7 @@ export default function Home() {
                 strokeOpacity="0.35"
               />
             </svg>
-            <p className="font-sans text-sm md:text-base text-[#4A0E4E]/70 tracking-[0.2em] uppercase font-medium">
+            <p className="font-sans text-sm md:text-base text-[#4A0E4E]/80 tracking-[0.2em] uppercase font-semibold">
               Innovative Developer
             </p>
             <svg width="40" height="2" className="hidden md:block">
@@ -107,15 +112,15 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* 3D Device Carousel */}
+        {/* 3D Device Carousel - "Selected Works" */}
         <motion.section
-          className="px-4 py-8 md:py-16"
+          className="flex flex-col items-center justify-center px-4 py-8 md:py-16"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.8 }}
         >
           <motion.h2
-            className="text-center font-serif text-lg md:text-xl text-[#4A0E4E]/60 tracking-[0.15em] uppercase mb-10"
+            className="text-center font-serif text-lg md:text-xl text-[#4A0E4E]/70 tracking-[0.15em] uppercase mb-10 font-medium"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.5, duration: 0.8 }}
@@ -124,6 +129,44 @@ export default function Home() {
           </motion.h2>
           <DeviceCarousel />
         </motion.section>
+
+        {/* ALL STITCHES - Scroll-triggered project grid */}
+        <section className="px-4 md:px-12 lg:px-20 py-12 md:py-20">
+          {/* Section header with stitch lines */}
+          <motion.div
+            className="flex items-center justify-center gap-4 mb-12 md:mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6 }}
+          >
+            <svg width="60" height="2" className="hidden md:block">
+              <line
+                x1="0" y1="1" x2="60" y2="1"
+                stroke="#4A0E4E"
+                strokeWidth="1.5"
+                strokeDasharray="5 4"
+                strokeOpacity="0.25"
+                strokeLinecap="round"
+              />
+            </svg>
+            <h2 className="font-serif text-xl md:text-2xl text-[#4A0E4E]/70 tracking-[0.15em] uppercase font-medium">
+              All Stitches
+            </h2>
+            <svg width="60" height="2" className="hidden md:block">
+              <line
+                x1="0" y1="1" x2="60" y2="1"
+                stroke="#4A0E4E"
+                strokeWidth="1.5"
+                strokeDasharray="5 4"
+                strokeOpacity="0.25"
+                strokeLinecap="round"
+              />
+            </svg>
+          </motion.div>
+
+          <ProjectGrid />
+        </section>
 
         {/* Footer stitch */}
         <footer className="flex flex-col items-center gap-4 pb-12 pt-8">
@@ -136,7 +179,7 @@ export default function Home() {
               strokeOpacity="0.25"
             />
           </svg>
-          <p className="font-sans text-xs text-[#4A0E4E]/30 tracking-widest uppercase">
+          <p className="font-sans text-xs text-[#4A0E4E]/40 tracking-widest uppercase">
             Crafted with care
           </p>
         </footer>
@@ -168,10 +211,10 @@ function CornerStitch({ position }: { position: "top-left" | "top-right" | "bott
 
   return (
     <motion.div
-      className={`fixed ${positionClasses[position]} z-0 pointer-events-none`}
+      className={`fixed ${positionClasses[position]} z-[2] pointer-events-none`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 3.5, duration: 0.5 }}
+      transition={{ delay: 4.5, duration: 0.5 }}
     >
       <svg
         width="24"

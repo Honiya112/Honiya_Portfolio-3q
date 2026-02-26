@@ -32,7 +32,7 @@ export function PolaroidFrame({
 
   return (
     <motion.div
-      className={`${sizeClasses[size]} bg-[#fefefe] p-2.5 pb-10 shadow-lg relative`}
+      className={`${sizeClasses[size]} bg-[#fefefe] p-2.5 pb-11 shadow-lg relative`}
       style={{
         rotate: rotation,
         boxShadow: "2px 4px 12px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.08)",
@@ -57,10 +57,8 @@ export function PolaroidFrame({
         />
       </div>
 
-      {/* Caption written in "handwriting" style */}
-      <p
-        className="absolute bottom-2.5 left-0 right-0 text-center text-[11px] md:text-xs text-[#4A0E4E]/70 tracking-wide font-serif italic"
-      >
+      {/* Caption - larger and bolder */}
+      <p className="absolute bottom-2.5 left-0 right-0 text-center text-xs md:text-sm text-[#4A0E4E] tracking-wide font-serif italic font-semibold">
         {caption}
       </p>
 
